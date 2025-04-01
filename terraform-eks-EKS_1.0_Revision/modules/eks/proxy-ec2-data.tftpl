@@ -1,0 +1,80 @@
+Content-Type: multipart/mixed; boundary="//"
+MIME-Version: 1.0
+
+--//
+Content-Type: text/cloud-boothook; charset="us-ascii"
+
+#!/bin/bash
+#Set the proxy hostname and port
+PROXY=${proxy_hostname}:${proxy_port}
+TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+MAC=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v -s http://169.254.169.254/latest/meta-data/mac/)
+VPC_CIDR=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v -s http://169.254.169.254/latest/meta-data/network/interfaces/macs/$MAC/vpc-ipv4-cidr-blocks | xargs | tr ' ' ',')
+
+#Create the containerd and sandbox-image systemd directory
+mkdir -p /etc/systemd/system/containerd.service.d
+mkdir -p /etc/systemd/system/sandbox-image.service.d
+mkdir -p /etc/systemd/system/kubelet.service.d
+
+#[Option] Configure yum to use the proxy
+cloud-init-per instance yum_proxy_config cat << EOF >> /etc/yum.conf
+proxy=http://$PROXY
+EOF
+
+#Set the proxy for future processes, and use as an include file
+cloud-init-per instance proxy_config cat << EOF >> /etc/environment
+http_proxy=http://$PROXY
+https_proxy=http://$PROXY
+HTTP_PROXY=http://$PROXY
+HTTPS_PROXY=http://$PROXY
+no_proxy=$VPC_CIDR,${no_proxy}
+NO_PROXY=$VPC_CIDR,${no_proxy}
+EOF
+
+#Set the VI2E Yum Repo
+cloud-init-per instance cat << EOF >> /etc/yum.repos.d/vi2e-hosted-gc.repo
+[vi2e-hosted]
+name=vi2e-hosted
+baseurl=https://vi2e-yum.s3-us-gov-west-1.amazonaws.com/RHEL9/vi2e-hosted
+enabled=1
+gpgcheck=1
+gpgkey=https://vi2e-yum.s3-us-gov-west-1.amazonaws.com/RHEL9/gpg/tenable-4096.gpg
+    https://vi2e-yum.s3-us-gov-west-1.amazonaws.com/RHEL9/gpg/RPM-GPG-KEY-scc-5.x
+EOF
+
+#Configure Containerd with the proxy
+cloud-init-per instance containerd_proxy_config tee <<EOF /etc/systemd/system/containerd.service.d/http-proxy.conf >/dev/null
+[Service]    
+EnvironmentFile=/etc/environment
+EOF
+
+#Configure sandbox-image with the proxy
+cloud-init-per instance sandbox-image_proxy_config tee <<EOF /etc/systemd/system/sandbox-image.service.d/http-proxy.conf >/dev/null
+[Service]    
+EnvironmentFile=/etc/environment
+EOF
+
+#Configure the kubelet with the proxy
+cloud-init-per instance kubelet_proxy_config tee <<EOF /etc/systemd/system/kubelet.service.d/proxy.conf >/dev/null
+[Service]
+EnvironmentFile=/etc/environment
+EOF
+
+cloud-init-per instance reload_daemon systemctl daemon-reload 
+
+--//
+Content-Type: application/node.eks.aws
+
+---
+apiVersion: node.eks.aws/v1alpha1
+kind: NodeConfig
+spec:
+  cluster:
+    name: ${cluster_name}
+    apiServerEndpoint: ${api_server_url}
+    certificateAuthority: ${cluster_ca}
+    cidr: ${cluster_service_cidr}
+  featureGates:
+    InstanceIdNodeName: true
+
+--//--

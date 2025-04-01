@@ -1,0 +1,53 @@
+<!-- BEGIN_TF_DOCS -->
+admin_iam_role       = "null"
+admin_user_name      = "PROJADMIN"
+cluster_iam_role     = "dev"
+cluster_name         = "my-tf-eks-cluster"
+cluster_service_cidr = "10.5.0.0/16"
+cluster_version      = "1.31"
+eks_cluster_subnets = {
+  "subnet": {
+    "availability_zone": "us-gov-west-1a",
+    "cidr_block": "10.0.0.0/28"
+  }
+}
+eks_nodegroups = {
+  "nodegroup1": {
+    "desired_size": 2,
+    "instance_type": "t3.medium",
+    "key_name": "my_ssh_key",
+    "max_size": 3,
+    "min_size": 1,
+    "name": "nodegroup1",
+    "node_group_name": "nodegroup1",
+    "subnets": {
+      "subnet1": {
+        "availability_zone": "us-gov-west-1a",
+        "cidr_block": "10.0.1.0/24",
+        "existing_subnet_id": null
+      },
+      "subnet2": {
+        "availability_zone": "us-gov-west-1b",
+        "cidr_block": "10.0.2.0/24",
+        "existing_subnet_id": null
+      },
+      "subnet3": {
+        "availability_zone": null,
+        "cidr_block": null,
+        "existing_subnet_id": "subnet-1234556"
+      }
+    },
+    "tags": {
+      "Name": "Nodegroup1"
+    }
+  }
+}
+eks_vpc_id         = "null"
+env_name           = "dev"
+no_proxy           = "10.50.0.0/16,10.100.0.0/16,172.20.0.0/16,127.0.0.1,169.254.169.254,127.0.0.1,localhost,localhost.localdomain,*.cluster.local,*.svc"
+nodegroup_iam_role = "null"
+organization       = "AFS"
+project            = "RADON-U"
+proxy_hostname     = "myproxy.test"
+proxy_port         = "3128"
+<!-- END_TF_DOCS -->
