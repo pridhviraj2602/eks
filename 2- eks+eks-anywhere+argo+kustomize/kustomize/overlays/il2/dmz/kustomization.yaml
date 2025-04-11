@@ -1,0 +1,9 @@
+bases:
+  - ../../base
+patchesStrategicMerge:
+  - patch.yaml
+configMapGenerator:
+  - name: my-app-config
+    literals:
+      - ENVIRONMENT=il2-dmz
+      - REPLICA_COUNT=1

@@ -1,0 +1,9 @@
+bases:
+  - ../../base
+patchesStrategicMerge:
+  - patch.yaml
+configMapGenerator:
+  - name: my-app-config
+    literals:
+      - ENVIRONMENT=il2-core-services
+      - REPLICA_COUNT=3

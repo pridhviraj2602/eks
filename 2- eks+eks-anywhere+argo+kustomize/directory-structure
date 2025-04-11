@@ -1,0 +1,70 @@
+terraform-eks/
+├── main.tf
+├── variables.tf
+├── providers.tf
+├── outputs.tf
+├── .gitlab-ci.yml
+├── modules/
+│   ├── vpc/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   ├── eks/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── outputs.tf
+│   │   └── userdata-eks.sh
+│   ├── eks-anywhere/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   ├── db-rds/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   ├── app-keycloak/
+│   │   └── main.tf
+│   ├── app-heimdall/
+│   │   └── main.tf
+│   ├── app-stig-manager/
+│   │   └── main.tf
+│   └── ec2-gitaly/
+│       ├── main.tf
+│       ├── variables.tf
+│       ├── outputs.tf
+│       └── userdata-gitaly.sh
+├── kustomize/
+│   ├── base/
+│   │   ├── kustomization.yaml
+│   │   ├── deployment.yaml
+│   │   └── service.yaml
+│   └── overlays/
+│       ├── il2/
+│       │   ├── core-services/
+│       │   │   ├── kustomization.yaml
+│       │   │   └── patch.yaml
+│       │   ├── devsecops/
+│       │   │   ├── kustomization.yaml
+│       │   │   └── patch.yaml
+│       │   └── dmz/
+│       │       ├── kustomization.yaml
+│       │       └── patch.yaml
+│       └── il5/
+│           ├── core-services/
+│           │   ├── kustomization.yaml
+│           │   └── patch.yaml
+│           ├── devsecops/
+│           │   ├── kustomization.yaml
+│           │   └── patch.yaml
+│           └── dmz/
+│               ├── kustomization.yaml
+│               └── patch.yaml
+├── argocd/
+│   └── applications/
+│       ├── il2-core-services.yaml
+│       ├── il2-devsecops.yaml
+│       └── il2-dmz.yaml
+└── packer/
+    ├── universal-ami.pkr.hcl
+    └── scripts/
+        └── install-common.sh

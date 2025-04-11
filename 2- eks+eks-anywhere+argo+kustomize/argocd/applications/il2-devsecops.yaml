@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: il2-devsecops
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: "https://gitlab.com/your-org/your-repo.git"
+    targetRevision: main
+    path: "kustomize/overlays/il2/devsecops"
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: "devsecops"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

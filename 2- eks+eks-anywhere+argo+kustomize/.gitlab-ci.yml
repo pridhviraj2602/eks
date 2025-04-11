@@ -1,0 +1,32 @@
+stages:
+  - build-ami
+  - terraform
+
+build_ami:
+  stage: build-ami
+  image: hashicorp/packer:latest
+  script:
+    - cd packer
+    - packer init universal-ami.pkr.hcl
+    - |
+      PACKER_OUTPUT=$(packer build -machine-readable universal-ami.pkr.hcl)
+      echo "$PACKER_OUTPUT"
+      AMI_ID=$(echo "$PACKER_OUTPUT" | grep 'artifact,0,id' | cut -d, -f6 | cut -d':' -f2)
+      echo "AMI ID: $AMI_ID"
+    - echo "UNIVERSAL_AMI_ID=$AMI_ID" >> variables.env
+  artifacts:
+    reports:
+      dotenv: variables.env
+
+terraform_deploy:
+  stage: terraform
+  image: hashicorp/terraform:latest
+  dependencies:
+    - build_ami
+  script:
+    - source variables.env
+    - cd terraform-eks
+    - terraform init
+    - terraform apply -auto-approve -var="universal_ami_id=$UNIVERSAL_AMI_ID"
+  only:
+    - main
